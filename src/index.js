@@ -1,11 +1,16 @@
-import express from 'express'
+import bodyParser from 'body-parser'
 import cors from 'cors'
+import express from 'express'
+import mongoose from 'mongoose'
 import path from 'path'
 
-import REST from './api/rest'
+import API from './api/router'
+import dbConfig from './db.json'
 
 const app = express()
 const PORT = 8081
+
+mongoose.connect(`mongodb://${dbConfig.user}:${dbConfig.pass}${dbConfig.url}`) // connect to our database
 
 // access-control-allow-origin
 var corsOptions = {
@@ -15,17 +20,23 @@ var corsOptions = {
 
 app.use(cors(corsOptions))
 
+// support json encoded bodies
+app.use(bodyParser.json())
+
+// support encoded bodies
+app.use(bodyParser.urlencoded({ extended: true }))
+
+// Static assets
+app.use('/static', express.static(path.resolve(__dirname, '../public')))
+
 // This responds with "Hello World" on the homepage
 app.get('/', (req, res) => {
    console.log("Got a GET request for the homepage")
    res.send('Hello GET')
 })
 
-// Static assets
-app.use('/static', express.static(path.resolve(__dirname, '../public')))
-
-// Add REST
-app.use('/api', REST)
+// Add API
+app.use('/api', API)
 
 const server = app.listen(PORT, () => {
 
